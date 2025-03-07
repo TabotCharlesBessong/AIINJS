@@ -1,14 +1,14 @@
 import jwt from "jsonwebtoken";
 import { connectToDatabase } from "./db.js";
-import User from "./models/user.model.js";
+import User from "./models/user.model.js"
 
 const secretKey =
-  process.env.JWT_SECRET_KEY || "super-secret-key-change-in-production";
+  process.env.JWT_SECRET_KEY
 
 // Ensure database connection
 connectToDatabase();
 
-export async function createUser(email, password) {
+export async function createUser(email, password, isAdmin = false) {
   try {
     // Check if user already exists
     const existingUser = await User.findOne({ email });
@@ -17,13 +17,20 @@ export async function createUser(email, password) {
     }
 
     // Create new user
-    const user = new User({ email, password });
+    const user = new User({ email, password, isAdmin });
     await user.save();
 
-    // Generate JWT token
-    const token = jwt.sign({ id: user._id.toString() }, secretKey, {
-      expiresIn: "1h",
-    });
+    // Generate JWT token with isAdmin flag
+    const token = jwt.sign(
+      {
+        id: user._id.toString(),
+        isAdmin: user.isAdmin,
+      },
+      secretKey,
+      {
+        expiresIn: "7d",
+      }
+    );
 
     return token;
   } catch (error) {
@@ -49,10 +56,17 @@ export async function login(email, password) {
       throw error;
     }
 
-    // Generate JWT token
-    const token = jwt.sign({ id: user._id.toString() }, secretKey, {
-      expiresIn: "1h",
-    });
+    // Generate JWT token with isAdmin flag
+    const token = jwt.sign(
+      {
+        id: user._id.toString(),
+        isAdmin: user.isAdmin,
+      },
+      secretKey,
+      {
+        expiresIn: "1h",
+      }
+    );
 
     return token;
   } catch (error) {
@@ -72,6 +86,7 @@ export async function enforceAuth(req, res, next) {
   try {
     const decoded = jwt.verify(token, secretKey);
     req.userId = decoded.id;
+    req.isAdmin = decoded.isAdmin || false;
 
     // Verify user exists
     const user = await User.findById(decoded.id);
@@ -84,4 +99,19 @@ export async function enforceAuth(req, res, next) {
   } catch (error) {
     return res.status(401).send({ error: "Unauthenticated" });
   }
+}
+
+// New middleware to check for admin role
+export function enforceAdmin(req, res, next) {
+  if (!req.isAdmin) {
+    return res
+      .status(403)
+      .send({ error: "Unauthorized: Admin access required" });
+  }
+  next();
+}
+
+// Helper function to create an admin user (for initial setup)
+export async function createAdminUser(email, password) {
+  return createUser(email, password, true);
 }

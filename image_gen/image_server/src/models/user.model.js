@@ -1,3 +1,4 @@
+// models/User.js
 import { Schema, model } from "mongoose";
 import bcrypt from "bcryptjs";
 
@@ -19,6 +20,10 @@ const userSchema = new Schema({
     type: String,
     required: [true, "Password is required"],
     minlength: 7,
+  },
+  isAdmin: {
+    type: Boolean,
+    default: false,
   },
   createdAt: {
     type: Date,

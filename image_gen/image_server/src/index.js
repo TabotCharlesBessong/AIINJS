@@ -1,9 +1,8 @@
 // index.js
 import express from "express";
 import dotenv from "dotenv";
-import { ObjectId } from "mongoose";
 
-import { createUser, enforceAuth, login } from "./auth.js";
+import { createAdminUser, createUser, enforceAuth, login } from "./auth.js";
 import { generateImage, getUserImages, getImageById } from "./image.js";
 import { connectToDatabase } from "./db.js";
 
@@ -133,6 +132,133 @@ app.get("/images/:id", enforceAuth, async (req, res) => {
     res
       .status(500)
       .send({ error: error.message || "Failed to retrieve image" });
+  }
+});
+
+// Add these routes to index.js
+
+// Get user's images with advanced filtering and pagination
+app.get('/images', enforceAuth, async (req, res) => {
+  try {
+    const options = {
+      limit: parseInt(req.query.limit) || 10,
+      skip: parseInt(req.query.skip) || 0,
+      sortBy: req.query.sortBy || 'createdAt',
+      sortOrder: req.query.sortOrder === 'asc' ? 1 : -1,
+      fromDate: req.query.fromDate,
+      toDate: req.query.toDate
+    };
+    
+    const { images, total } = await getUserImages(req.userId, options);
+    
+    res.status(200).send({ 
+      images, 
+      pagination: {
+        total,
+        limit: options.limit,
+        skip: options.skip,
+        hasMore: total > options.skip + options.limit
+      }
+    });
+  } catch (error) {
+    res.status(500).send({ error: error.message || 'Failed to retrieve images' });
+  }
+});
+
+// Get user's image statistics
+app.get('/images/stats', enforceAuth, async (req, res) => {
+  try {
+    const stats = await getUserImageStats(req.userId);
+    res.status(200).send(stats);
+  } catch (error) {
+    res.status(500).send({ error: error.message || 'Failed to retrieve image statistics' });
+  }
+});
+
+// Get a specific image by ID
+app.get('/images/:id', enforceAuth, async (req, res) => {
+  try {
+    const imageId = req.params.id;
+    
+    // Validate ObjectId format
+    if (!ObjectId.isValid(imageId)) {
+      return res.status(400).send({ error: 'Invalid image ID' });
+    }
+    
+    const { image, format, prompt, createdAt } = await getImageById(imageId, req.userId);
+    
+    // Set appropriate headers
+    res.type(format);
+    res.set('X-Image-Prompt', prompt);
+    res.set('X-Image-Created', createdAt.toISOString());
+    
+    res.status(200).send(image);
+  } catch (error) {
+    if (error.message === 'Image not found') {
+      return res.status(404).send({ error: 'Image not found' });
+    }
+    res.status(500).send({ error: error.message || 'Failed to retrieve image' });
+  }
+});
+
+// Admin route to get all images across users (requires admin role)
+app.get('/admin/images', enforceAuth, async (req, res) => {
+  try {
+    // Check if user has admin role (you'll need to implement this)
+    if (!req.user.isAdmin) {
+      return res.status(403).send({ error: 'Unauthorized' });
+    }
+    
+    const options = {
+      limit: parseInt(req.query.limit) || 10,
+      skip: parseInt(req.query.skip) || 0,
+      userId: req.query.userId || null,
+      sortBy: req.query.sortBy || 'createdAt',
+      sortOrder: req.query.sortOrder === 'asc' ? 1 : -1
+    };
+    
+    const { images, total } = await getAllImages(options);
+    
+    res.status(200).send({ 
+      images, 
+      pagination: {
+        total,
+        limit: options.limit,
+        skip: options.skip,
+        hasMore: total > options.skip + options.limit
+      }
+    });
+  } catch (error) {
+    res.status(500).send({ error: error.message || 'Failed to retrieve images' });
+  }
+});
+
+// Add an admin creation endpoint (protected by an admin secret)
+app.post('/create-admin', async (req, res) => {
+  try {
+    const { email, password, adminSecret } = req.body;
+    
+    // Verify admin secret
+    if (!adminSecret || adminSecret !== process.env.ADMIN_SECRET) {
+      return res.status(403).send({ error: 'Invalid admin secret' });
+    }
+    
+    // Validate email and password
+    if (
+      !email ||
+      !email.includes('@') ||
+      !password ||
+      password.trim().length < 7
+    ) {
+      return res.status(400).send({ error: 'Invalid email or password' });
+    }
+    
+    const token = await createAdminUser(email, password);
+    res.status(201).send({ message: 'Admin user created successfully', token });
+  } catch (error) {
+    res
+      .status(400)
+      .send({ error: error.message || 'Creating admin user failed' });
   }
 });
 
