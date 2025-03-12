@@ -5,7 +5,7 @@ import { Formik, Form } from "formik";
 import { motion } from "framer-motion";
 import { Link, useNavigate } from "react-router-dom";
 import { loginSchema } from "../../utils/validators";
-import { login, reset } from "../../features/auth/authSlice";
+import { register, reset } from "../../redux/auth/authSlice";
 import Input from "../common/Input";
 import Button from "../common/Button";
 import Alert from "../common/Alert";
@@ -88,7 +88,7 @@ const LoginForm = () => {
 
             <Button
               type="submit"
-              variant="primary"
+              variant="success"
               isLoading={isLoading}
               className="w-full"
             >

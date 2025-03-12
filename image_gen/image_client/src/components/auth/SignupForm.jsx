@@ -5,7 +5,7 @@ import { Formik, Form } from "formik";
 import { motion } from "framer-motion";
 import { Link, useNavigate } from "react-router-dom";
 import { signupSchema } from "../../utils/validators";
-import { register, reset } from "../../features/auth/authSlice";
+import { register, reset } from "../../redux/auth/authSlice";
 import Input from "../common/Input";
 import Button from "../common/Button";
 import Alert from "../common/Alert";
