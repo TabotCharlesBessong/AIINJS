@@ -1,0 +1,10 @@
+POST http://localhost:3000/generate-image
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY3Y2E5NjBhYWQ5ZjgxZjJjMTEwZjQ3MCIsImlzQWRtaW4iOmZhbHNlLCJpYXQiOjE3NDEzMzUyNjYsImV4cCI6MTc0MTMzODg2Nn0._iN2sqB5fLvuBAb_V1aDB4FGxBFXAxMOjf_RRDR5rIY
+
+{
+    "prompt": "A web developer confused",
+    "options": {
+      "format": "jpg"
+    }
+}
