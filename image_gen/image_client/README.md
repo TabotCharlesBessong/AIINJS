@@ -10,3 +10,41 @@ Currently, two official plugins are available:
 ## Expanding the ESLint configuration
 
 If you are developing a production application, we recommend using TypeScript and enable type-aware lint rules. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+
+# Root project structure
+src/
+├── components/
+│   ├── auth/
+│   │   ├── LoginForm.jsx
+│   │   ├── SignupForm.jsx
+│   │   └── AuthLayout.jsx
+│   ├── common/
+│   │   ├── Button.jsx
+│   │   ├── Input.jsx
+│   │   ├── Navbar.jsx
+│   │   └── Alert.jsx
+│   └── layout/
+│       ├── MainLayout.jsx
+│       └── ProtectedRoute.jsx
+├── features/
+│   ├── auth/
+│   │   ├── authSlice.js
+│   │   └── authService.js
+│   └── images/
+│       ├── imageSlice.js
+│       └── imageService.js
+├── pages/
+│   ├── Auth/
+│   │   ├── Login.jsx
+│   │   └── Signup.jsx
+│   ├── Dashboard.jsx
+│   ├── GenerateImage.jsx
+│   ├── ImageGallery.jsx
+│   └── ImageDetails.jsx
+├── app/
+│   └── store.js
+├── utils/
+│   ├── api.js
+│   └── validators.js
+├── App.jsx
+└── index.js
