@@ -27,7 +27,9 @@ export default async function Header() {
       <nav className="container mx-auto px-4 h-16 flex items-center justify-between">
         <Link href="/">
           <Image
-            src={"/logo.png"}
+            src={
+              "https://github.com/piyush-eon/ai-career-coach/blob/master/public/logo.png?raw=true"
+            }
             alt="Sensai Logo"
             width={200}
             height={60}
