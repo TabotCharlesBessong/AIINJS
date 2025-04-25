@@ -20,11 +20,11 @@ export const register = createAsyncThunk(
   "auth/register",
   async (userData, thunkAPI) => {
     try {
-      return await authService.register(userData);
+      const response = await authService.register(userData);
+      return response;
     } catch (error) {
       const message =
         error.response?.data?.error || error.message || "Something went wrong";
-
       return thunkAPI.rejectWithValue(message);
     }
   }
@@ -35,11 +35,11 @@ export const login = createAsyncThunk(
   "auth/login",
   async (userData, thunkAPI) => {
     try {
-      return await authService.login(userData);
+      const response = await authService.login(userData);
+      return response;
     } catch (error) {
       const message =
         error.response?.data?.error || error.message || "Something went wrong";
-
       return thunkAPI.rejectWithValue(message);
     }
   }
@@ -72,6 +72,7 @@ export const authSlice = createSlice({
         state.isSuccess = true;
         state.isAuthenticated = true;
         state.token = action.payload.token;
+        state.user = action.payload.user;
       })
       .addCase(register.rejected, (state, action) => {
         state.isLoading = false;
@@ -79,6 +80,7 @@ export const authSlice = createSlice({
         state.message = action.payload;
         state.token = null;
         state.isAuthenticated = false;
+        state.user = null;
       })
       // Login cases
       .addCase(login.pending, (state) => {
@@ -89,6 +91,7 @@ export const authSlice = createSlice({
         state.isSuccess = true;
         state.isAuthenticated = true;
         state.token = action.payload.token;
+        state.user = action.payload.user;
       })
       .addCase(login.rejected, (state, action) => {
         state.isLoading = false;
@@ -96,6 +99,7 @@ export const authSlice = createSlice({
         state.message = action.payload;
         state.token = null;
         state.isAuthenticated = false;
+        state.user = null;
       })
       // Logout case
       .addCase(logout.fulfilled, (state) => {
