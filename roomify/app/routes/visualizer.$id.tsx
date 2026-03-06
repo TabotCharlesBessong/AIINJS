@@ -2,7 +2,7 @@ import { useNavigate, useOutletContext, useParams } from "react-router";
 import { useEffect, useRef, useState } from "react";
 import { generate3DView } from "../../lib/ai.action";
 import { Box, Download, RefreshCcw, Share2, X } from "lucide-react";
-import Button from "../../components/ui/Button";
+import {Button} from "../components/ui/Button";
 import { createProject, getProjectById } from "../../lib/puter.action";
 import {
   ReactCompareSlider,
@@ -206,7 +206,7 @@ const VisualizerId = () => {
                 }
                 itemTwo={
                   <ReactCompareSliderImage
-                    src={currentImage || project?.renderedImage}
+                    src={(currentImage || project?.renderedImage) ?? undefined}
                     alt="after"
                     className="compare-img"
                   />
