@@ -1,13 +1,17 @@
 import { Box } from "lucide-react";
 import React, { useState } from "react";
 import { Button } from "./ui/Button";
+import { useOutletContext } from "react-router";
 // import { Link } from 'react-router'
 
 const Navbar = () => {
-  const [isSignedIn, setIsSignedIn] = useState(false);
-  const userName = "John Doe";
+  const { isSignedIn, userName, signIn, signOut } = useOutletContext<AuthContext>();
   const handleAuthClick = async () => {
-    setIsSignedIn(!isSignedIn);
+    if (isSignedIn) {
+      await signOut();
+    } else {
+      await signIn();
+    }
   };
   return (
     <header className="navbar">
