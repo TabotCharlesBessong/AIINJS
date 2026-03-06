@@ -77,7 +77,7 @@ export const fetchBlobFromUrl = async (
   }
 
   try {
-    const response = await fetch(url);
+    const response = await fetch(url, { credentials: "include" });
     if (!response.ok) throw new Error("Failed to fetch image");
     return {
       blob: await response.blob(),

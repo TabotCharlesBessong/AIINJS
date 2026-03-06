@@ -23,8 +23,12 @@ export const createProject = async ({
   visibility = "private",
 }: CreateProjectParams): Promise<DesignItem | null | undefined> => {
   if (!PUTER_WORKER_URL) {
-    console.warn("Missing VITE_PUTER_WORKER_URL; skip history fetch;");
-    return null;
+    console.warn(
+      "Missing VITE_PUTER_WORKER_URL; returning local-only project (not persisted).",
+    );
+    return {
+      ...item,
+    };
   }
   const projectId = item.id;
 
