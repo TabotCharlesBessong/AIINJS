@@ -1,4 +1,4 @@
-import { useNavigate, useOutletContext, useParams } from "react-router";
+import { useLocation, useNavigate, useOutletContext, useParams } from "react-router";
 import { useEffect, useRef, useState } from "react";
 import { generate3DView } from "../../lib/ai.action";
 import { Box, Download, RefreshCcw, Share2, X } from "lucide-react";
@@ -12,6 +12,7 @@ import {
 const VisualizerId = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
   const { userId } = useOutletContext<AuthContext>();
 
   const hasInitialGenerated = useRef(false);
@@ -21,6 +22,10 @@ const VisualizerId = () => {
 
   const [isProcessing, setIsProcessing] = useState(false);
   const [currentImage, setCurrentImage] = useState<string | null>(null);
+
+  const locationState = location.state as
+    | { initialImage?: string; initialRendered?: string | null; name?: string }
+    | null;
 
   const handleBack = () => navigate("/");
   const handleExport = () => {
@@ -85,8 +90,23 @@ const VisualizerId = () => {
 
       if (!isMounted) return;
 
-      setProject(fetchedProject);
-      setCurrentImage(fetchedProject?.renderedImage || null);
+      if (fetchedProject) {
+        setProject(fetchedProject);
+        setCurrentImage(fetchedProject.renderedImage || null);
+      } else if (locationState?.initialImage && id) {
+        const syntheticProject: DesignItem = {
+          id,
+          name: locationState.name ?? `Residence ${id}`,
+          sourceImage: locationState.initialImage,
+          renderedImage: locationState.initialRendered ?? undefined,
+          timestamp: Date.now(),
+        };
+        setProject(syntheticProject);
+        setCurrentImage(locationState.initialRendered ?? null);
+      } else {
+        setProject(null);
+        setCurrentImage(null);
+      }
       setIsProjectLoading(false);
       hasInitialGenerated.current = false;
     };
@@ -96,7 +116,7 @@ const VisualizerId = () => {
     return () => {
       isMounted = false;
     };
-  }, [id]);
+  }, [id, locationState?.initialImage]);
 
   useEffect(() => {
     if (

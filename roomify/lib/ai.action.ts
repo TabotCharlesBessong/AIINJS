@@ -2,7 +2,7 @@ import puter from "@heyputer/puter.js";
 import { ROOMIFY_RENDER_PROMPT } from "./constants";
 
 export const fetchAsDataUrl = async (url: string): Promise<string> => {
-  const response = await fetch(url);
+  const response = await fetch(url, { credentials: "include" });
 
   if (!response.ok) {
     throw new Error(`Failed to fetch image: ${response.statusText}`);
