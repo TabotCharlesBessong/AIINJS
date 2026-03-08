@@ -6,6 +6,29 @@ import {
 import { isHostedUrl } from "./utils";
 import { PUTER_WORKER_URL } from "./constants";
 
+const ROOMIFY_LOCAL_PROJECTS_KEY = "roomify_projects";
+
+function getLocalProjects(): DesignItem[] {
+  try {
+    const raw = localStorage.getItem(ROOMIFY_LOCAL_PROJECTS_KEY);
+    if (!raw) return [];
+    const parsed = JSON.parse(raw) as unknown;
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+}
+
+function setLocalProjects(projects: DesignItem[]): void {
+  try {
+    localStorage.setItem(ROOMIFY_LOCAL_PROJECTS_KEY, JSON.stringify(projects));
+  } catch (e) {
+    if (e instanceof Error && e.name === "QuotaExceededError") {
+      console.warn("localStorage quota exceeded; project list not persisted.");
+    }
+  }
+}
+
 export const signIn = async () => await puter.auth.signIn();
 
 export const signOut = () => puter.auth.signOut();
@@ -23,12 +46,15 @@ export const createProject = async ({
   visibility = "private",
 }: CreateProjectParams): Promise<DesignItem | null | undefined> => {
   if (!PUTER_WORKER_URL) {
-    console.warn(
-      "Missing VITE_PUTER_WORKER_URL; returning local-only project (not persisted).",
-    );
-    return {
-      ...item,
-    };
+    const list = getLocalProjects();
+    const updated: DesignItem = { ...item };
+    const idx = list.findIndex((p) => p.id === item.id);
+    const next =
+      idx >= 0
+        ? list.map((p) => (p.id === item.id ? updated : p))
+        : [updated, ...list];
+    setLocalProjects(next);
+    return updated;
   }
   const projectId = item.id;
 
@@ -109,8 +135,8 @@ export const createProject = async ({
 
 export const getProjects = async () => {
   if (!PUTER_WORKER_URL) {
-    console.warn("Missing VITE_PUTER_WORKER_URL; skip history fetch;");
-    return [];
+    const list = getLocalProjects();
+    return list.slice().sort((a, b) => (b.timestamp ?? 0) - (a.timestamp ?? 0));
   }
 
   try {
@@ -135,8 +161,8 @@ export const getProjects = async () => {
 
 export const getProjectById = async ({ id }: { id: string }) => {
   if (!PUTER_WORKER_URL) {
-    console.warn("Missing VITE_PUTER_WORKER_URL; skipping project fetch.");
-    return null;
+    const list = getLocalProjects();
+    return list.find((p) => p.id === id) ?? null;
   }
 
   console.log("Fetching project with ID:", id);
